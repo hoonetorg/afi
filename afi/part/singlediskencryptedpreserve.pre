@@ -1,0 +1,34 @@
+<?php
+function afi_partition_pre($afi_install_disks) {
+  $afi_fs="ext4";
+  $afi_mkfs_options="-E lazy_itable_init=1,lazy_journal_init=1,discard";
+  $afi_tunefs_options="-c0 -i0 -o discard";
+
+  #partitions
+
+  if (AFI_PART_INITIAL == 1) {
+    $afi_part_bootable=1;
+    $afi_disklabel_type="msdos";
+    $afi_install_disk_layout=array( 
+      0 => array('part_type' => "primary", 'part_size' => "2048" ), 
+      1 => array('part_type' => "primary", 'part_size' => "20480" ), 
+      2 => array('part_type' => "primary", 'part_size' => "41984" ), 
+      3 => array('part_type' => "primary", 'part_size' => "end" ),
+    );
+
+    afi_make_partitions($afi_install_disks[0]['disk'], $afi_part_bootable, $afi_disklabel_type, $afi_install_disk_layout ) ;
+    print "\n";
+  
+  }
+
+  #/boot
+  #$afi_boot_device="/dev/".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."1";
+  #afi_mkfs($afi_boot_device, $afi_fs, $afi_mkfs_options." -L boot");
+  #afi_tunefs($afi_boot_device, $afi_fs, $afi_tunefs_options);
+    
+  #/root
+  #$afi_root_device="/dev/".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."2";
+  #afi_mkfs($afi_root_device, $afi_fs, $afi_mkfs_options." -L root");
+  #afi_tunefs($afi_root_device, $afi_fs, $afi_tunefs_options);
+}
+?>

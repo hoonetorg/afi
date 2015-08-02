@@ -1,0 +1,23 @@
+<?php
+function afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space) {
+
+  print "ignoredisk --only-use=$afi_install_disks_comma\n";
+
+  if (AFI_PART_INITIAL == 1) {
+    print "zerombr\n";
+    print "clearpart --all\n";
+
+    print "part raid.11 --size=512  --asprimary        --ondrive=".$afi_install_disks[0]['disk']."\n";
+    print "part raid.12 --size=2048 --asprimary --grow --ondrive=".$afi_install_disks[0]['disk']."\n";
+
+    print "part raid.21 --size=512  --asprimary        --ondrive=".$afi_install_disks[1]['disk']."\n";
+    print "part raid.22 --size=2048 --asprimary --grow --ondrive=".$afi_install_disks[1]['disk']."\n";
+
+    print "raid /boot   --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard                   --level=1 --device=md1 raid.11 raid.21\n";
+    print "raid /       --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard,errors=remount-ro --level=1 --device=md2 raid.12 raid.22\n";
+  } else {
+    print "raid /boot   --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard                             --device=md1 --useexisting\n";
+    print "raid /       --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard,errors=remount-ro           --device=md2 --useexisting\n";
+  }
+}
+?>

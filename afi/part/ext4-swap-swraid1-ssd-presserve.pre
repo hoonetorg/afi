@@ -1,0 +1,44 @@
+<?php
+function afi_partition_pre($afi_install_disks) {
+
+  print "cat /proc/mdstat\n";
+  print "mdadm --stop --force /dev/md[0-9]*\n";
+  print "cat /proc/mdstat\n";
+
+  $afi_mkraid1_disk1=$afi_install_disks[0]['disk']; 
+  $afi_mkraid1_disk2=$afi_install_disks[1]['disk'];
+
+  #partitions
+  if (AFI_PART_INITIAL == 1) {
+    $afi_part_bootable=1;
+    $afi_disklabel_type="msdos";
+    $afi_install_disk_layout=array( 
+      0 => array('part_type' => "primary", 'part_size' => "2048" ),
+      1 => array('part_type' => "primary", 'part_size' => "20480" ),
+      2 => array('part_type' => "extended", 'part_size' => "end" ),
+      3 => array('part_type' => "logical", 'part_size' => "8192" ),
+      4 => array('part_type' => "logical", 'part_size' => "8192" ),
+      5 => array('part_type' => "logical", 'part_size' => "end" ),
+    );  
+
+    afi_make_partitions($afi_install_disks[0]['disk'], $afi_part_bootable, $afi_disklabel_type, $afi_install_disk_layout ) ;
+    afi_make_partitions($afi_install_disks[1]['disk'], $afi_part_bootable, $afi_disklabel_type, $afi_install_disk_layout ) ;
+    print "\n";
+
+    afi_mkraid1($afi_mkraid1_disk1, $afi_mkraid1_disk2, "1", "1.0");
+    afi_mkraid1($afi_mkraid1_disk1, $afi_mkraid1_disk2, "2", "1.1");
+    print "\n";
+
+  }
+
+  #/boot
+  afi_asraid1($afi_mkraid1_disk1, $afi_mkraid1_disk2, "1");
+    
+  #/root
+  afi_asraid1($afi_mkraid1_disk1, $afi_mkraid1_disk2, "2");
+
+  afi_disasraid1("/dev/md1");
+  afi_disasraid1("/dev/md2");
+
+}
+?>

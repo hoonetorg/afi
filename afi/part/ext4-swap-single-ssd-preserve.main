@@ -1,0 +1,12 @@
+<?php
+function afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space) {
+
+  print "ignoredisk --only-use=$afi_install_disks_comma\n";
+
+  #print "part /boot             --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard                    --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."1 --noformat\n";
+  #print "part /                 --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard,errors=remount-ro  --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."2 --noformat\n";
+  print "part /boot             --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard                    --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."1\n";
+  print "part /                 --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard,errors=remount-ro  --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."2\n";
+  print "part swap                                                                                         --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."3\n";
+}
+?>

@@ -1,0 +1,13 @@
+<?php
+  $afi_keypartition = afi_get_const_array_key('AFI_CLIENT_CONF','keypartition');
+  print "chkconfig salt-minion on\n";
+  print "mkdir -p /1\n";
+  print "mount -o ro ".$afi_keypartition." /1\n";
+  print "mkdir -p /etc/salt/pki/minion\n"; 
+  print "chmod 700 /etc/salt/pki/minion\n"; 
+  print "cp /1/minion.pub /1/minion.pem /etc/salt/pki/minion/\n"; 
+  print "chmod 400 /etc/salt/pki/minion/minion.pem\n"; 
+  print "chmod 644 /etc/salt/pki/minion/minion.pub\n"; 
+  print "umount /1\n";
+  print "rmdir -p /1\n";
+?>

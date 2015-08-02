@@ -1,0 +1,13 @@
+<?php
+function afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space) {
+
+  print "ignoredisk --only-use=$afi_install_disks_comma\n";
+
+  print "zerombr\n";
+  print "clearpart --all\n";
+
+  print "part /boot --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard                   --size=2048        --asprimary --label=boot\n";
+  print "part /     --fstype=ext4 --fsoptions=rw,noatime,nodiratime,discard,errors=remount-ro --size=4096 --grow --asprimary --label=root\n";
+
+}
+?>

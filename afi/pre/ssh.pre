@@ -1,0 +1,18 @@
+<?php
+  $afi_keypartition = afi_get_const_array_key('AFI_CLIENT_CONF','keypartition');
+  print "mkdir -p /1\n";
+  print "mount -o ro ".$afi_keypartition." /1\n";
+  print "mkdir -p /etc/ssh\n"; 
+  print "chmod 755 /etc/ssh\n"; 
+  print "cp /1/ssh_host_* /etc/ssh\n"; 
+  print "for ssh_host_key_file in /etc/ssh/ssh_host_*_key;do \n"; 
+  print "chown root:ssh_keys \$ssh_host_key_file\n"; 
+  print "chmod 640 \$ssh_host_key_file\n"; 
+  print "done\n"; 
+  print "for ssh_host_key_filepub in /etc/ssh/ssh_host_*_key.pub;do \n"; 
+  print "chown root:root \$ssh_host_key_filepub\n"; 
+  print "chmod 644 \$ssh_host_key_filepub\n"; 
+  print "done\n"; 
+  print "umount /1\n";
+  print "rmdir -p /1\n";
+?>

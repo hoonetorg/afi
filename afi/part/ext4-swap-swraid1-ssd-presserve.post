@@ -1,0 +1,12 @@
+<?php
+function afi_partition_post($afi_install_disks) {
+?>
+tune2fs -o discard /dev/md1
+tune2fs -o discard /dev/md2
+fallocate -l 4G /swapfile
+chmod 600 /swapfile 
+mkswap /swapfile
+echo "/swapfile none swap defaults,discard 0 0" >> /etc/fstab
+<?php
+}
+?>

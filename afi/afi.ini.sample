@@ -1,0 +1,8 @@
+# if $_SERVER is not trustworthy and therefor 
+# afi_trust_global_server_variable is FALSE, 
+# afi_valid_baseurls_afi must be defined
+afi_trust_global_server_variable = FALSE
+afi_valid_baseurls_afi[] = "https://<afiweberserver>/afi"
+afi_valid_baseurls_afi[] = "https://<afiweberser-alias-1>/afi"
+afi_conf_dir = "/usr/local/etc/aficonfig"
+afi_app_debug = 5
