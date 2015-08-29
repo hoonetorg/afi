@@ -222,10 +222,10 @@ function afi_get_host_config($afi_conf_dir, $hostname) {
 
   //load environment specific conf
   if (!file_exists($afi_conf_dir."/overrides/".$environment."/defaults/defaults.conf")) {
-    print "#no env specific defaults file found: \n";
-    return NULL;
+    $default_conf_environment = [];
+  } else {
+    $default_conf_environment = parse_ini_file($afi_conf_dir."/overrides/".$environment."/defaults/defaults.conf");
   }
-  $default_conf_environment = parse_ini_file($afi_conf_dir."/overrides/".$environment."/defaults/defaults.conf");
 
   if (!file_exists($hostconffile[0])) {
     print "#no hostconf file found: ".$hostconffile[0]."\n";
