@@ -9,20 +9,6 @@ require_once './lib/libpart.php';
 #FIXME
 $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name()); #FIXME
 
-#defines
-# localization settings 
-define("AFI_LANG", $host_conf['lang']);
-define("AFI_KEYB", $host_conf['keyb']);
-define("AFI_TIMEZONE", $host_conf['timezone']);
-
-# ssl setting
-$noverifyssl_string_kickstart="";
-if ($host_conf['noverifyssl'] == 1) {
-  $noverifyssl_string_kickstart="--noverifyssl";
-}
-define("AFI_NOVERIFY_SSL_STRING_KICKSTART", $noverifyssl_string_kickstart);
-
-
 # intial pw hashes
 define("AFI_INITIAL_PW_HASH", $host_conf['initial_pw_hash']);
 define("AFI_INITIAL_PW_PBKDF2", $host_conf['initial_pw_pbkdf2']);
@@ -109,8 +95,8 @@ print "\n";
 print "# simple settings\n";
 
 print "#localization\n";
-print "lang ".AFI_LANG."\n";
-print "keyboard --vckeymap=".AFI_KEYB." --xlayouts='".AFI_KEYB."'\n";
+print "lang ".$host_conf['lang']."\n";
+print "keyboard --vckeymap=".$host_conf['keyb']." --xlayouts='".$host_conf['keyb']."'\n";
 
 #sshd during installation (needs sshd kernel parameter for anaconda)
 print "sshpw --username=root ".AFI_INITIAL_PW_HASH." --iscrypted\n";
@@ -127,7 +113,7 @@ print "firewall --disabled\n";
 print "selinux --permissive\n";
 
 # Time Zone Configuration
-print "timezone --utc ".AFI_TIMEZONE."\n";
+print "timezone --utc ".$host_conf['timezone']."\n";
 
 # System services
 print "services --disabled=\"kdump\" --enabled=\"sshd,rsyslog,chronyd\"\n";
