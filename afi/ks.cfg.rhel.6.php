@@ -12,21 +12,6 @@ $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_
 $afi_pre_dir = "/tmp/afi_pre";
 $afi_post_dir = "/tmp/afi_post";
 
-?>
-
-# Perform kickstart installation in text mode
-text
-install
-skipx
-
-# Agree to EULA
-#eula --agreed
-
-logging --level=debug
-
-reboot
-
-<?php
 print "# Partitioning Information and bootloader\n";
 
 
@@ -62,6 +47,22 @@ print "bootloader --append=\"console=tty0 net.ifnames=0\" --timeout=15 --locatio
 afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space);
 print "\n";
 
+
+?>
+
+# Perform kickstart installation in text mode
+text
+install
+skipx
+
+# Agree to EULA
+#eula --agreed
+
+logging --level=debug
+
+reboot
+
+<?php
 print "#network\n";
 #print "%include ".$afi_pre_dir."/afi_pre_network\n\n";
 #or
