@@ -48,13 +48,18 @@ function afi_get_base_url_origin($use_forwarded_host=false) {
 function afi_get_base_url_afi($use_forwarded_host=false){
 
   $afi_dyn_baseurl_afi    = afi_get_base_url_origin($use_forwarded_host) . dirname($_SERVER['SCRIPT_NAME']);
-  $afi_valid_baseurls_afi = afi_get_const_array_key('AFI_INI_SETTINGS','afi_valid_baseurls_afi');
 
-  if ( afi_get_const_array_key('AFI_INI_SETTINGS','afi_trust_global_server_variable')
-       || in_array($afi_dyn_baseurl_afi ,$afi_valid_baseurls_afi) ) {
+  if ( afi_get_const_array_key('AFI_INI_SETTINGS','afi_trust_global_server_variable') ) {
     afi_debug_var("afi_base_url_afi defined from afi_get_base_url_afi: ",$afi_dyn_baseurl_afi,5);
     return $afi_dyn_baseurl_afi;
   }
+
+  $afi_valid_baseurls_afi = afi_get_const_array_key('AFI_INI_SETTINGS','afi_valid_baseurls_afi');
+  if ( in_array($afi_dyn_baseurl_afi ,$afi_valid_baseurls_afi) ) {
+    afi_debug_var("afi_base_url_afi defined from afi_get_base_url_afi: ",$afi_dyn_baseurl_afi,5);
+    return $afi_dyn_baseurl_afi;
+  }
+
   afi_debug_var("afi_base_url_afi defined from afi_valid_baseurls_afi[0]: ",$afi_valid_baseurls_afi[0],5);
   return $afi_valid_baseurls_afi[0];
 
