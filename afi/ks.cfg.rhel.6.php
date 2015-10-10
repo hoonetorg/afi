@@ -12,6 +12,24 @@ $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_
 $afi_pre_dir = "/tmp/afi_pre";
 $afi_post_dir = "/tmp/afi_post";
 
+?>
+
+# Perform kickstart installation in text mode
+text
+install
+skipx
+
+# Agree to EULA
+#eula --agreed
+
+logging --level=debug
+
+reboot
+
+<?php
+print "# Partitioning Information and bootloader\n";
+
+
 if ( isset($host_conf['partition_class'])) {
   $partition_class=$host_conf['partition_class'];
   afi_require_file_and_override ("part/${partition_class}.main",false);
@@ -31,22 +49,12 @@ foreach ($host_conf['install_disks'] as $afi_install_disk_number => $afi_install
  $afi_install_disks[$afi_install_disk_number]['partprefix']=afi_part_get_partprefix($afi_install_disk);
 }
 
-?>
+afi_debug_var("afi_install_disks", $afi_install_disks,6);
+afi_debug_var("afi_install_disks_comma", $afi_install_disks_comma,6);
+afi_debug_var("afi_install_disks_space", $afi_install_disks_space,6);
 
-# Perform kickstart installation in text mode
-text
-install
-skipx
 
-# Agree to EULA
-#eula --agreed
 
-logging --level=debug
-
-reboot
-
-<?php
-print "# Partitioning Information and bootloader\n";
 
 # Boot Loader Configuration and  Boot Loader Password
 print "bootloader --append=\"console=tty0 net.ifnames=0\" --timeout=15 --location=".$host_conf['bootloader_location']." --iscrypted --password=".$host_conf['initial_pw_pbkdf2']." --driveorder=$afi_install_disks_comma\n";
