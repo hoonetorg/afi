@@ -9,25 +9,9 @@ require_once './lib/libpart.php';
 #FIXME
 $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name()); #FIXME
 
-# intial pw hashes
-define("AFI_INITIAL_PW_HASH", $host_conf['initial_pw_hash']);
-define("AFI_INITIAL_PW_PBKDF2", $host_conf['initial_pw_pbkdf2']);
-
-#FIXME partitioning files
-define("AFI_INITIAL_PW", $host_conf['initial_pw']);
-
-# bootloader settings
-define("AFI_BOOTLOADER_LOCATION", $host_conf['bootloader_location']);
-define("AFI_QUIET_BOOT", $host_conf['quiet_boot']);
-define("AFI_RHGB_BOOT", $host_conf['rhgb_boot']);
-
-
 #partitioning settings
 #FIXME partitioning files
 define("AFI_PART_INITIAL", $host_conf['part_initial']);
-
-
-#FIXME partitioning# define("AFI_INITIAL_PW", $host_conf['initial_pw']);
 #FIXME partitioning# define("AFI_PART_INITIAL", $host_conf['part_initial']);
 
 
@@ -72,7 +56,7 @@ reboot
 print "# Partitioning Information and bootloader\n";
 
 # Boot Loader Configuration and  Boot Loader Password
-print "bootloader --append=\"console=tty0 net.ifnames=0\" --timeout=15 --location=".AFI_BOOTLOADER_LOCATION." --iscrypted --password=".AFI_INITIAL_PW_PBKDF2." --driveorder=$afi_install_disks_comma\n";
+print "bootloader --append=\"console=tty0 net.ifnames=0\" --timeout=15 --location=".$host_conf['bootloader_location']." --iscrypted --password=".$host_conf['initial_pw_pbkdf2']." --driveorder=$afi_install_disks_comma\n";
 
 afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space);
 print "\n";
@@ -99,11 +83,11 @@ print "lang ".$host_conf['lang']."\n";
 print "keyboard --vckeymap=".$host_conf['keyb']." --xlayouts='".$host_conf['keyb']."'\n";
 
 #sshd during installation (needs sshd kernel parameter for anaconda)
-print "sshpw --username=root ".AFI_INITIAL_PW_HASH." --iscrypted\n";
+print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
 # Authorization Configuration
 print "auth --enableshadow --passalgo=sha512\n";
 # initial passwd
-print "rootpw --iscrypted ".AFI_INITIAL_PW_HASH."\n";
+print "rootpw --iscrypted ".$host_conf['initial_pw_hash']."\n";
 
 # Firewall/Security Configuration
 ##shoul be the goal
@@ -247,10 +231,10 @@ main() {
 <?php 
 
   #disable rhgb quiet
-  if (AFI_QUIET_BOOT == 0){
+  if ($host_conf['quiet_boot'] == 0){
     print "sed -i -r 's/^[[:blank:]]*(GRUB_CMDLINE_LINUX.*[^[:alnum:]])quiet([^[:alnum:]])/\\1\\2/g' /etc/default/grub\n";
   }
-  if (AFI_RHGB_BOOT == 0){
+  if ($host_conf['rhgb_boot'] == 0){
     print "sed -i -r 's/^[[:blank:]]*(GRUB_CMDLINE_LINUX.*[^[:alnum:]])rhgb([^[:alnum:]])/\\1\\2/g' /etc/default/grub\n";
   }
 
