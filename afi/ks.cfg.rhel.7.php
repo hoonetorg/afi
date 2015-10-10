@@ -9,13 +9,6 @@ require_once './lib/libpart.php';
 #FIXME
 $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name()); #FIXME
 
-#partitioning settings
-#FIXME partitioning files
-define("AFI_PART_INITIAL", $host_conf['part_initial']);
-#FIXME partitioning# define("AFI_PART_INITIAL", $host_conf['part_initial']);
-
-
-
 $afi_pre_dir = "/tmp/afi_pre";
 $afi_post_dir = "/tmp/afi_post";
 

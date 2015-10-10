@@ -9,7 +9,7 @@ function afi_partition_pre($afi_install_disks) {
   $afi_mkraid1_disk2=$afi_install_disks[1]['disk'];
 
   #partitions
-  if (AFI_PART_INITIAL == 1) {
+  if (afi_get_const_array_key('AFI_CLIENT_CONF','part_initial') == 1) {
     $afi_part_bootable=1;
     $afi_disklabel_type="msdos";
     $afi_install_disk_layout=array( 

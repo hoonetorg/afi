@@ -3,7 +3,7 @@ function afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_i
 
   print "ignoredisk --only-use=$afi_install_disks_comma\n";
 
-  if (AFI_PART_INITIAL == 1) {
+  if (afi_get_const_array_key('AFI_CLIENT_CONF','part_initial') == 1) {
     print "zerombr\n";
     print "clearpart --all\n";
 
