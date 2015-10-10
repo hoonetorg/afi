@@ -96,7 +96,7 @@ print "# simple settings\n";
 
 print "#localization\n";
 print "lang ".$host_conf['lang']."\n";
-print "keyboard --vckeymap=".AFI_KEYB." --xlayouts='".AFI_KEYB."'\n";
+print "keyboard --vckeymap=".$host_conf['keyb']." --xlayouts='".$host_conf['keyb']."'\n";
 
 #sshd during installation (needs sshd kernel parameter for anaconda)
 print "sshpw --username=root ".AFI_INITIAL_PW_HASH." --iscrypted\n";
@@ -113,7 +113,7 @@ print "firewall --disabled\n";
 print "selinux --permissive\n";
 
 # Time Zone Configuration
-print "timezone --utc ".AFI_TIMEZONE."\n";
+print "timezone --utc ".$host_conf['timezone']."\n";
 
 # System services
 print "services --disabled=\"kdump\" --enabled=\"sshd,rsyslog,chronyd\"\n";
