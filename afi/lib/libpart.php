@@ -1,4 +1,100 @@
 <?php
+
+function afi_part_bootloader() {
+  $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
+
+  $bootloader_append_string = "console=tty0";
+
+  if ($host_conf['disableconsistennetworkdevicenaming'] == 1){
+    $bootloader_append_string = $bootloader_append_string." net.ifnames=0";
+  }
+
+  print "bootloader --append=\"".$bootloader_append_string."\" --timeout=15 --location=".$host_conf['bootloader_location']." --iscrypted --password=".$host_conf['initial_pw_pbkdf2']." --driveorder=".implode(",",$host_conf['install_disks'])."\n";
+}
+
+function afi_part_main() {
+  $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
+
+  $partition_class=afi_part_get_partitionclass();
+  afi_require_file_and_override ("part/${partition_class}.main",false);
+
+  if (! function_exists('afi_partition_main')) {
+    print "error loading function afi_partition_main()\n";
+    exit(1);
+  }
+
+  afi_partition_main(afi_part_get_installdisks(), afi_part_get_installdisks_comma(), afi_part_get_installdisks_space() );
+}
+
+function afi_part_pre() {
+  $partition_class=afi_part_get_partitionclass();
+
+  afi_require_file_and_override ("part/${partition_class}.pre",false);
+  if (function_exists('afi_partition_pre')) {
+    afi_partition_pre(afi_part_get_installdisks());
+  }
+}
+
+function afi_part_firstreboot() {
+  $partition_class=afi_part_get_partitionclass();
+
+  afi_require_file_and_override ("part/${partition_class}.firstreboot",false);
+  if (function_exists('afi_partition_firstreboot')) {
+    afi_partition_firstreboot(afi_part_get_installdisks());
+  }
+}
+
+function afi_part_post() {
+  $partition_class=afi_part_get_partitionclass();
+
+  afi_require_file_and_override ("part/${partition_class}.post",false);
+  if (function_exists('afi_partition_post')) {
+    afi_partition_post(afi_part_get_installdisks());
+  }
+}
+
+function afi_part_post_nochroot() {
+  $partition_class=afi_part_get_partitionclass();
+
+  afi_require_file_and_override ("part/${partition_class}.post_nochroot",false);
+  if (function_exists('afi_partition_post_nochroot')) {
+    afi_partition_post_nochroot(afi_part_get_installdisks());
+  }
+}
+
+function afi_part_get_partitionclass() {
+  $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
+
+  if ( isset($host_conf['partition_class'])) {
+    $partition_class=$host_conf['partition_class'];
+  } else {
+    print "error loading partition_class\n";
+    exit(1);
+  }
+  return $partition_class;
+}
+
+function afi_part_get_installdisks() {
+  $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
+
+  foreach ($host_conf['install_disks'] as $afi_install_disk_number => $afi_install_disk) {
+    $afi_install_disks[$afi_install_disk_number]['disk']=$afi_install_disk;
+    $afi_install_disks[$afi_install_disk_number]['partprefix']=afi_part_get_partprefix($afi_install_disk);
+  }
+  afi_debug_var("afi_install_disks", $afi_install_disks,6);
+  return $afi_install_disks;
+}
+
+function afi_part_get_installdisks_comma() {
+  $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
+  return implode(",",$host_conf['install_disks']);
+}
+
+function afi_part_get_installdisks_space() {
+  $host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
+  return implode(" ",$host_conf['install_disks']);
+}
+
 function afi_part_get_partprefix ($afi_install_disk) {
   $pattern = '/^disk\/by-/';
   $partprefix = "";

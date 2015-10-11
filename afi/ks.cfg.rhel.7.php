@@ -6,48 +6,15 @@ require_once './inc/conf.php';
 require_once './lib/libks.php';
 require_once './lib/libpart.php';
 
-#FIXME
-$host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name()); #FIXME
+$host_conf= afi_get_host_config(afi_get_const_array_key('AFI_INI_SETTINGS','afi_conf_dir'), afi_get_client_profile_name());
 
 $afi_pre_dir = "/tmp/afi_pre";
 $afi_post_dir = "/tmp/afi_post";
 
 print "# Partitioning Information and bootloader\n";
-
-
-if ( isset($host_conf['partition_class'])) {
-  $partition_class=$host_conf['partition_class'];
-  afi_require_file_and_override ("part/${partition_class}.main",false);
-} else {
-  print "error loading partition_class\n";
-  exit(1);
-}
-if (! function_exists('afi_partition_main')) {
-  print "error loading function afi_partition_main()\n";
-  exit(1);
-}
-
-$afi_install_disks_comma=implode(",",$host_conf['install_disks']);
-$afi_install_disks_space=implode(" ",$host_conf['install_disks']);
-foreach ($host_conf['install_disks'] as $afi_install_disk_number => $afi_install_disk) {
- $afi_install_disks[$afi_install_disk_number]['disk']=$afi_install_disk;
- $afi_install_disks[$afi_install_disk_number]['partprefix']=afi_part_get_partprefix($afi_install_disk);
-}
-
-afi_debug_var("afi_install_disks", $afi_install_disks,6);
-afi_debug_var("afi_install_disks_comma", $afi_install_disks_comma,6);
-afi_debug_var("afi_install_disks_space", $afi_install_disks_space,6);
-
-
-
-
-# Boot Loader Configuration and  Boot Loader Password
-print "bootloader --append=\"console=tty0 net.ifnames=0\" --timeout=15 --location=".$host_conf['bootloader_location']." --iscrypted --password=".$host_conf['initial_pw_pbkdf2']." --driveorder=$afi_install_disks_comma\n";
-
-afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space);
+afi_part_bootloader();
+afi_part_main();
 print "\n";
-
-
 ?>
 
 # Perform kickstart installation in text mode
@@ -70,13 +37,9 @@ print "#network\n";
 #todo
 print "\n";
 
-
 print "# url and repos\n";
-
 create_repo_config_ks();
 print "\n";
-
-
 
 print "# simple settings\n";
 
@@ -111,9 +74,6 @@ print "\n";
 print "#package configuration\n";
 create_package_config_ks();
 print "\n";
-
-
-
 ?>
 
 # Pre
@@ -140,17 +100,19 @@ main() {
       afi_require_file_and_override ("pre/${preclassvalue}.pre"); 
     }
   }
+  print "\n";
 
+  #if pre partition class is defined, print it here
+  afi_part_pre();
+  print "\n";
 
-  afi_require_file_and_override ("part/${partition_class}.pre",false);
-  if (function_exists('afi_partition_pre')) {
-    afi_partition_pre($afi_install_disks);
-    print "\n";
-  }
   #bring back eth* network interface names
-  print "rm -f /etc/udev/rules.d/70*\n"; 
-  print "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules\n"; 
-  print "ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules\n"; 
+  if ($host_conf['disableconsistennetworkdevicenaming'] == 1){
+    print "rm -f /etc/udev/rules.d/70*\n"; 
+    print "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules\n"; 
+    print "ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules\n"; 
+  }
+
 ?>
 }
 
@@ -172,8 +134,8 @@ export 2>&1|tee "$AFI_PRE_DIR/afi_pre_export.log"
 
 %end
 
-<?php
 #POST NOCHROOT 1st
+<?php
 print "%post --nochroot --log=".$afi_post_dir."/afi_post_full_nochroot_first.log\n";
 ?>
 echo "Kickstart-installed Linux - POST -section (nochroot-first) (`/usr/bin/date`)"
@@ -211,6 +173,7 @@ export 2>&1|tee "$AFI_POST_DIR/afi_post_nochroot_first_export.log"
 
 %end
 
+#POST CHROOT
 <?php
 print "%post --interpreter /bin/bash --log=/tmp/afi_post_full.log\n";
 ?>
@@ -249,29 +212,40 @@ main() {
   print "grub2-mkconfig -o /boot/grub2/grub.cfg\n";
 
   #bring back eth* network interface names
-  print "rm -f /etc/udev/rules.d/70*\n"; 
-  print "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules\n"; 
-  print "ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules\n"; 
+  if ($host_conf['disableconsistennetworkdevicenaming'] == 1){
+    print "rm -f /etc/udev/rules.d/70*\n"; 
+    print "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules\n"; 
+    print "ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules\n"; 
+  }
 
-  #remove eth config files - nm does dhcp per default on all interfaces
-  print "rm -f /etc/sysconfig/network-scripts/ifcfg-eth*\n";
+  #remove ifcfg-* config files(except ifcfg-lo) - nm does dhcp per default on all interfaces
+  print "for f in  /etc/sysconfig/network-scripts/ifcfg-*;do \n";
+  print "  [ \"\$f\" != \"/etc/sysconfig/network-scripts/ifcfg-lo\" ] && rm -f \"\$f\"\n";
+  print "done \n";
 
   #firstreboot-scripts
   print "mkdir -p /etc/rc.firstreboot\n";
   print "chmod 700 /etc/rc.firstreboot\n";
  
   #copy/create  scripts 
-  afi_require_file_and_override ("part/${partition_class}.firstreboot",false);
-  if (function_exists('afi_partition_firstreboot')) {
-    afi_partition_firstreboot($afi_install_disks);
-    print "\n";
-  }
+  
+  #function afi_part_firsteboot must create at least one file in 
+  # /etc/rc.firstreboot/[0-9][0-9][0-9]-<a-filename>
+  # and can therefore decide the ordering to other scripts
+  # !!! THE CREATED FILES MUST BE MADE EXECUTABLE !!!
+  afi_part_firstreboot();
+  print "\n";
 
+  # functions ${postclassvalue}.firstreboot must create at least one file in 
+  # /etc/rc.firstreboot/[0-9][0-9][0-9]-<a-filename>
+  # and can therefore decide the ordering to other scripts
+  # !!! THE CREATED FILES MUST BE MADE EXECUTABLE !!!
   if (is_array($host_conf['post_classes'])) {
     foreach ($host_conf['post_classes'] as $postclassvalue) {
       afi_require_file_and_override ("post/${postclassvalue}.firstreboot"); 
     }
   }
+  print "\n";
 
 ?>
   mkdir -p /var/log/install/firstreboot
@@ -304,11 +278,8 @@ exit 0
 EOF
 
 <?php 
-  afi_require_file_and_override ("part/${partition_class}.post",false);
-  if (function_exists('afi_partition_post')) {
-    afi_partition_post($afi_install_disks);
-    print "\n";
-  }
+  afi_part_post();
+  print "\n";
 
   if (is_array($host_conf['post_classes'])) {
     foreach ($host_conf['post_classes'] as $postclassvalue) {
@@ -350,8 +321,8 @@ export 2>&1|tee "$AFI_POST_LOG_DIR/afi_post_nochroot_second_export.log"
 
 
 
-<?php
 #POST NOCHROOT 2nd
+<?php
 print "%post --nochroot --log=".$afi_post_dir."/afi_post_full_nochroot_second.log\n";
 ?>
 
@@ -370,11 +341,8 @@ main() {
   esac
 
 <?php 
-  afi_require_file_and_override ("part/${partition_class}.post_nochroot",false);
-  if (function_exists('afi_partition_post_nochroot')) {
-    afi_partition_post_nochroot($afi_install_disks);
-    print "\n";
-  }
+  afi_part_post_nochroot();
+  print "\n";
 ?>
 
 }
