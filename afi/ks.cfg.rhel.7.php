@@ -83,9 +83,8 @@ print "firewall ".$firewall." ".$firewallservice." ".$firewallport."\n";
 print "\n";
 
 print "# Selinux configuration\n";
-## following should be the goal
-#print "selinux --enforcing\n";
-print "selinux --permissive\n";
+$selinux=$host_conf['selinux'];
+print "selinux --".$selinux."\n";
 print "\n";
 
 print "# System services\n";
