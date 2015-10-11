@@ -55,31 +55,50 @@ print "# Time Zone Configuration\n";
 print "timezone --utc ".$host_conf['timezone']."\n";
 print "\n";
 
-#{FIXME begin
 print "# Authconf\n";
 print "auth --enableshadow --passalgo=sha512\n";
-##make configurable
+print "# setting rootpw is required for kickstart - disable it via a post script, if needed\n";
 print "rootpw --iscrypted ".$host_conf['initial_pw_hash']."\n";
-print "# Enable sshd during installation (needs sshd kernel parameter for anaconda)\n";
-##make configurable
-print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
 print "\n";
 
+if ( $host_conf['instsshd'] == 1) {
+  print "# Enable sshd during installation (needs sshd kernel parameter for anaconda and initial_pw_hash)\n";
+  print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
+  print "\n";
+}
+
 print "# Firewall configuration\n";
-print "firewall --disabled\n";
-## following should be the goal
-#print "firewall --enabled --service=ssh\n";
+if ( $host_conf['firewall'] == 1) {
+  $firewall="--enabled";
+} else {
+  $firewall="--disabled";
+}
+$firewallservice="";
+if ( $host_conf['firewallservice'] != "" ) {
+  $firewallservice="--service=".$host_conf['firewallservice'];
+}
+$firewallport="";
+if ( $host_conf['firewallport'] != "" ) {
+  $firewallport="--port=".$host_conf['firewallport'];
+}
+print "firewall ".$firewall." ".$firewallservice." ".$firewallport."\n";
 print "\n";
 
 print "# Selinux configuration\n";
-## following should be the goal
-#print "selinux --enforcing\n";
-print "selinux --permissive\n";
+$selinux=$host_conf['selinux'];
+print "selinux --".$selinux."\n";
 print "\n";
 
 print "# System services\n";
-## make configurable review kdump and rsyslog (rsyslog enabled by default?)
-print "services --disabled=\"kdump\" --enabled=\"sshd,rsyslog,chronyd\"\n";
+$servicesdisabled="";
+if ( $host_conf['servicesdisabled'] != "" ) {
+  $servicesdisabled="--disabled=".$host_conf['servicesdisabled'];
+}
+$servicesenabled="";
+if ( $host_conf['servicesenabled'] != "" ) {
+  $servicesenabled="--enabled=".$host_conf['servicesenabled'];
+}
+print "services ".$servicesdisabled." ".$servicesenabled."\n";
 print "\n";
 
 #FIXME end }
@@ -374,7 +393,6 @@ export 2>&1|tee "$AFI_POST_LOG_DIR/afi_post_nochroot_second_export.log"
 #sleep 3500
 
 %end
-
 
 
 #POST NOCHROOT 2nd
