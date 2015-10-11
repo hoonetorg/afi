@@ -29,18 +29,18 @@ function create_ipxe_kernel_string() {
   switch (true) {
     case (preg_match($afi_rhel_clones_regex, $afi_dist)):
       if (preg_match("/^6\.[0-9]+$/", $afi_distver)) {
-        $afi_dist_kernel_opts = "sshd=1 ramdisk_size=100000 ksdevice=bootif";
+        $afi_dist_kernel_opts = "ramdisk_size=100000 ksdevice=bootif";
       } else {
-        $afi_dist_kernel_opts = "inst.sshd";
+        $afi_dist_kernel_opts = "";
       }
       break;
     case (preg_match("/fedora/", $afi_dist)):
-      $afi_dist_kernel_opts = "inst.sshd";
+      $afi_dist_kernel_opts = "";
       break;
-    case (preg_match("/ubuntu|debian/", $afi_dist)):
-      #use fai - obsolete - rather use preseed FIXME
-      $afi_dist_kernel_opts ="boot=live fetch=".afi_get_base_url_afi(TRUE)."/faiserver/UBUNTUPRECISE/base.squashfs ip=dhcp FAI_CONFIG_SRC=git+https://gitserver/fai.git FAI_ACTION=install FAI_FLAGS=verbose,sshd";
-      break;
+#    # FIXME do not use fai - rather use preseed
+#    case (preg_match("/ubuntu|debian/", $afi_dist)):
+#      $afi_dist_kernel_opts ="boot=live fetch=".afi_get_base_url_afi(TRUE)."/faiserver/UBUNTUPRECISE/base.squashfs ip=dhcp FAI_CONFIG_SRC=git+https://gitserver/fai.git FAI_ACTION=install FAI_FLAGS=verbose,sshd";
+#      break;
   }
 
   $afi_kernel_string = $afi_kernel_string." ".$afi_dist_kernel_opts;
@@ -76,6 +76,16 @@ function create_ipxe_kernel_string() {
   afi_debug_var("afi_provisioning_file_string", $afi_provisioning_file_string, 6);
     
   $afi_kernel_string = $afi_kernel_string." ".$afi_provisioning_file_string;
+
+  if (afi_get_const_array_key('AFI_CLIENT_CONF','instsshd') == 1) {
+    if ( (preg_match($afi_rhel_clones_regex, $afi_dist)) &&  (preg_match("/^6\.[0-9]+$/", $afi_distver)) ) {
+      $instsshd_string = "sshd=1";
+    } else {
+      $instsshd_string = "inst.sshd";
+    }
+    $afi_kernel_string = $afi_kernel_string." ".$instsshd_string;
+  }
+
 
   # ssl kernel parameter
   if (afi_get_const_array_key('AFI_CLIENT_CONF','noverifyssl') == 1) {

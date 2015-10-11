@@ -55,15 +55,17 @@ print "# Time Zone Configuration\n";
 print "timezone --utc ".$host_conf['timezone']."\n";
 print "\n";
 
-#{FIXME begin
 print "# Authconf\n";
 print "auth --enableshadow --passalgo=sha512\n";
-##make configurable
+print "# setting rootpw is required for kickstart - disable it via a post script, if needed\n";
 print "rootpw --iscrypted ".$host_conf['initial_pw_hash']."\n";
-print "# Enable sshd during installation (needs sshd kernel parameter for anaconda)\n";
-##make configurable
-print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
 print "\n";
+
+if ( $host_conf['instsshd'] == 1) {
+  print "# Enable sshd during installation (needs sshd kernel parameter for anaconda and initial_pw_hash)\n";
+  print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
+  print "\n";
+}
 
 print "# Firewall configuration\n";
 if ( $host_conf['firewall'] == 1) {
