@@ -6,8 +6,7 @@ Summary:	AFI Automatically Fully Install - a wrapper around kickstart
 Group:		Applications/System
 License:	Apache License, Version 2.0
 URL:		https://github.com/hoonetorg/%{name}
-Source0:	https://github.com/hoonetorg/%{name}/archive/master.tar.gz
-#Source0:	https://github.com/hoonetorg/%{name}/archive/master.tar.gz#/%{name}-%{version}.tar.gz
+Source0:	https://github.com/hoonetorg/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
 BuildRequires:	rpm-build
 Requires:	webserver, php
