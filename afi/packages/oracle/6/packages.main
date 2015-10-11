@@ -1,12 +1,6 @@
 packages="#package class for dist oracle
+@core
 chrony
-rsync
-yum-utils
--biosdevname
-#no rhel kernel, only oracle kernel(kernel-uek) - not working
-#-kernel
-#-kernel-firmware
-#instead remove kernel from grub boot list
 remove_kernel_26_from_bootmenu
 #no rhn stuff and no repo files
 -rhn-check

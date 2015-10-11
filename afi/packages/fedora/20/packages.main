@@ -1,8 +1,4 @@
 packages="#package class for dist fedora
 @core
 fedora-release
-chrony
-rsync
-yum-utils
--biosdevname
--plymouth"
+chrony"

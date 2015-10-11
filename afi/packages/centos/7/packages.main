@@ -1,7 +1,3 @@
 packages="#package class for dist centos
 @core
-chrony
-rsync
-yum-utils
--biosdevname
--plymouth"
+chrony"
