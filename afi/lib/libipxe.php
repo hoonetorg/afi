@@ -26,22 +26,14 @@ function create_ipxe_kernel_string() {
 
   # dist specific extra kernel parameters
   # no good magic FIXME
-  switch (true) {
-    case (preg_match($afi_rhel_clones_regex, $afi_dist)):
-      if (preg_match("/^6\.[0-9]+$/", $afi_distver)) {
-        $afi_dist_kernel_opts = "ramdisk_size=100000 ksdevice=bootif";
-      } else {
-        $afi_dist_kernel_opts = "";
-      }
-      break;
-    case (preg_match("/fedora/", $afi_dist)):
-      $afi_dist_kernel_opts = "";
-      break;
-#    # FIXME do not use fai - rather use preseed
-#    case (preg_match("/ubuntu|debian/", $afi_dist)):
-#      $afi_dist_kernel_opts ="boot=live fetch=".afi_get_base_url_afi(TRUE)."/faiserver/UBUNTUPRECISE/base.squashfs ip=dhcp FAI_CONFIG_SRC=git+https://gitserver/fai.git FAI_ACTION=install FAI_FLAGS=verbose,sshd";
-#      break;
+  $afi_dist_kernel_opts = "";
+  if ( (preg_match($afi_rhel_clones_regex, $afi_dist)) &&  (preg_match("/^6\.[0-9]+$/", $afi_distver)) ) {
+    $afi_dist_kernel_opts = "ramdisk_size=100000 ksdevice=bootif";
   }
+#  # FIXME do not use fai - rather use preseed
+#  if ( (preg_match("/ubuntu|debian/", $afi_dist)) ) {
+#    $afi_dist_kernel_opts ="boot=live fetch=".afi_get_base_url_afi(TRUE)."/faiserver/UBUNTUPRECISE/base.squashfs ip=dhcp FAI_CONFIG_SRC=git+https://gitserver/fai.git FAI_ACTION=install FAI_FLAGS=verbose,sshd";
+#  }
 
   $afi_kernel_string = $afi_kernel_string." ".$afi_dist_kernel_opts;
 
