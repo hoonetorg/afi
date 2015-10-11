@@ -88,8 +88,15 @@ print "selinux --".$selinux."\n";
 print "\n";
 
 print "# System services\n";
-## make configurable review kdump and rsyslog (rsyslog enabled by default?)
-print "services --disabled=\"kdump\" --enabled=\"sshd,rsyslog,chronyd\"\n";
+$servicesdisabled="";
+if ( $host_conf['servicesdisabled'] != "" ) {
+  $servicesdisabled="--disabled=".$host_conf['servicesdisabled'];
+}
+$servicesenabled="";
+if ( $host_conf['servicesenabled'] != "" ) {
+  $servicesenabled="--enabled=".$host_conf['servicesenabled'];
+}
+print "services ".$servicesdisabled." ".$servicesenabled."\n";
 print "\n";
 
 #FIXME end }
