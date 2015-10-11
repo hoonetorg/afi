@@ -66,9 +66,20 @@ print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
 print "\n";
 
 print "# Firewall configuration\n";
-print "firewall --disabled\n";
-## following should be the goal
-#print "firewall --enabled --service=ssh\n";
+if ( $host_conf['firewall'] == 1) {
+  $firewall="enabled";
+} else {
+  $firewall="disabled";
+}
+$firewallservice="";
+if ( $host_conf['firewallservice'] != "" ) {
+  $firewallservice="--service=".$host_conf['firewallservice'];
+}
+$firewallport="";
+if ( $host_conf['firewallport'] != "" ) {
+  $firewallport="--port=".$host_conf['firewallport'];
+}
+print "firewall ".$firewall." ".$firewallservice." ".$firewallport."\n";
 print "\n";
 
 print "# Selinux configuration\n";
