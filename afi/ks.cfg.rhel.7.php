@@ -69,9 +69,9 @@ if ( $host_conf['instsshd'] == 1) {
 
 print "# Firewall configuration\n";
 if ( $host_conf['firewall'] == 1) {
-  $firewall="enabled";
+  $firewall="--enabled";
 } else {
-  $firewall="disabled";
+  $firewall="--disabled";
 }
 $firewallservice="";
 if ( $host_conf['firewallservice'] != "" ) {
