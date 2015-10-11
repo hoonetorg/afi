@@ -6,6 +6,11 @@ function afi_part_bootloader() {
   $bootloader_append_string = "console=tty0";
 
   if ($host_conf['disableconsistennetworkdevicenaming'] == 1){
+    print "\n";
+    print "# bring back eth* network interface names instead of consistent ethernet device naming\n";
+    print "# requires kernel parameters net.ifnames=0 biosdevname=0\n";
+    print "# biosdevname=0 will be taken from kickstart kernel parameters, but not net.ifnames=0, \n";
+    print "# that's why we add it manually here\n";
     $bootloader_append_string = $bootloader_append_string." net.ifnames=0";
   }
 

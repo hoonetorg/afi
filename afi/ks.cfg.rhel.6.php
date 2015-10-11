@@ -2,7 +2,7 @@
 
 require_once './inc/conf.php';
 
-#specific require_onces
+#specific require_once's
 require_once './lib/libks.php';
 require_once './lib/libpart.php';
 
@@ -13,6 +13,7 @@ $afi_post_dir = "/tmp/afi_post";
 
 print "# Partitioning Information and bootloader\n";
 afi_part_bootloader();
+print "\n";
 afi_part_main();
 print "\n";
 ?>
@@ -25,16 +26,18 @@ skipx
 # Agree to EULA
 #eula --agreed
 
+# enable debug logging
 logging --level=debug
 
+# reboot after installation
 reboot
 
 <?php
 print "#network\n";
+#FIXME
 #print "%include ".$afi_pre_dir."/afi_pre_network\n\n";
 #or
 #print "network  --bootproto=dhcp\n";
-#todo
 print "\n";
 
 print "# url and repos\n";
@@ -46,28 +49,42 @@ print "# simple settings\n";
 print "#localization\n";
 print "lang ".$host_conf['lang']."\n";
 print "keyboard --vckeymap=".$host_conf['keyb']." --xlayouts='".$host_conf['keyb']."'\n";
+print "\n";
 
-#sshd during installation (needs sshd kernel parameter for anaconda)
-print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
-# Authorization Configuration
-print "auth --enableshadow --passalgo=sha512\n";
-# initial passwd
-print "rootpw --iscrypted ".$host_conf['initial_pw_hash']."\n";
-
-# Firewall/Security Configuration
-##shoul be the goal
-#print "firewall --enabled --service=ssh\n";
-#print "selinux --enforcing\n";
-print "firewall --disabled\n";
-print "selinux --permissive\n";
-
-# Time Zone Configuration
+print "# Time Zone Configuration\n";
 print "timezone --utc ".$host_conf['timezone']."\n";
+print "\n";
 
-# System services
+#{FIXME begin
+print "# Authconf\n";
+print "auth --enableshadow --passalgo=sha512\n";
+##make configurable
+print "rootpw --iscrypted ".$host_conf['initial_pw_hash']."\n";
+print "# Enable sshd during installation (needs sshd kernel parameter for anaconda)\n";
+##make configurable
+print "sshpw --username=root ".$host_conf['initial_pw_hash']." --iscrypted\n";
+print "\n";
+
+print "# Firewall configuration\n";
+print "firewall --disabled\n";
+## following should be the goal
+#print "firewall --enabled --service=ssh\n";
+print "\n";
+
+print "# Selinux configuration\n";
+## following should be the goal
+#print "selinux --enforcing\n";
+print "selinux --permissive\n";
+print "\n";
+
+print "# System services\n";
+## make configurable review kdump and rsyslog (rsyslog enabled by default?)
 print "services --disabled=\"kdump\" --enabled=\"sshd,rsyslog,chronyd\"\n";
+print "\n";
 
-# disable post configuration after first boot
+#FIXME end }
+
+print "# disable post configuration after first boot\n";
 print "firstboot --disable\n";
 print "\n";
 
@@ -93,26 +110,33 @@ main() {
       ARCH="sun4"
       ;;
   esac
-<?php
 
+<?php
+  print "# Trying to load preclasses\n";
   if (is_array($host_conf['pre_classes'])) {
     foreach ($host_conf['pre_classes'] as $preclassvalue) {
+      print "# Trying to load ".$preclassvalue.".pre\n";
       afi_require_file_and_override ("pre/${preclassvalue}.pre"); 
+      print "# End ".$preclassvalue.".pre \n";
+      print "\n";
     }
   }
+  print "# End preclasses\n";
   print "\n";
 
-  #if pre partition class is defined, print it here
+  print "# Trying to load pre partition class \n";
   afi_part_pre();
+  print "# End pre partition class \n";
   print "\n";
 
-  #bring back eth* network interface names
   if ($host_conf['disableconsistennetworkdevicenaming'] == 1){
+    print "# bring back eth* network interface names instead of consistent ethernet device naming\n";
+    print "# requires kernel parameters net.ifnames=0 biosdevname=0\n";
     print "rm -f /etc/udev/rules.d/70*\n"; 
     print "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules\n"; 
     print "ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules\n"; 
+    print "\n";
   }
-
 ?>
 }
 
@@ -155,11 +179,17 @@ main() {
   esac
 
 <?php
+  print "# Trying to load postclasses - nochroot\n";
   if (is_array($host_conf['post_classes'])) {
     foreach ($host_conf['post_classes'] as $postclassvalue) {
+      print "# Trying to load ".$postclassvalue.".nochroot\n";
       afi_require_file_and_override ("post/${postclassvalue}.nochroot"); 
+      print "# End ".$postclassvalue.".nochroot \n";
+      print "\n";
     }
   }
+  print "# End postclasses - nochroot\n";
+  print "\n";
 ?>
 
 }
@@ -192,68 +222,86 @@ main() {
       ;;
   esac
 
-
 <?php 
 
-  #disable rhgb quiet
   if ($host_conf['quiet_boot'] == 0){
+    print "# disable quiet boot\n";
     print "sed -i -r 's/^[[:blank:]]*(GRUB_CMDLINE_LINUX.*[^[:alnum:]])quiet([^[:alnum:]])/\\1\\2/g' /etc/default/grub\n";
+    print "\n";
   }
   if ($host_conf['rhgb_boot'] == 0){
+    print "# disable rhgb boot\n";
     print "sed -i -r 's/^[[:blank:]]*(GRUB_CMDLINE_LINUX.*[^[:alnum:]])rhgb([^[:alnum:]])/\\1\\2/g' /etc/default/grub\n";
+    print "\n";
   }
 
-  #reorder console entries
+  print "#reorder console entries for tty* and ttyS*(serial console) to make ttyS*(serial console) the primary console\n";
   print "sed -i -r \"s/^[[:blank:]]*(GRUB_CMDLINE_LINUX[[:blank:]]*=[[:blank:]]*[\\\"'])(.*[^[:alnum:]])(console=tty[0-9]*)([^[:alnum:]])/\\1 \\3 \\2 \\4/g\" /etc/default/grub\n";
   print "sed -i -r \"s/^[[:blank:]]*(GRUB_CMDLINE_LINUX.*)([^[:alnum:]]console=ttyS[0-9]*,[[:alnum:]]+[^[:alnum:]])(.*)([\\\"'])/\\1 \\3 \\2 \\4/g\" /etc/default/grub\n";
-
-
-  #generate new grub config
+  print "\n";
+  print "# this requires regenerating the grub config\n";
   print "grub2-mkconfig -o /boot/grub2/grub.cfg\n";
+  print "\n";
 
-  #bring back eth* network interface names
   if ($host_conf['disableconsistennetworkdevicenaming'] == 1){
+    print "# bring back eth* network interface names instead of consistent ethernet device naming\n";
+    print "# requires kernel parameters net.ifnames=0 biosdevname=0\n";
     print "rm -f /etc/udev/rules.d/70*\n"; 
     print "ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules\n"; 
     print "ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules\n"; 
+    print "\n";
   }
 
-  #remove ifcfg-* config files(except ifcfg-lo) - nm does dhcp per default on all interfaces
+  print "# removing ifcfg-* config files(except ifcfg-lo) - nm does dhcp per default on all interfaces\n";
   print "for f in  /etc/sysconfig/network-scripts/ifcfg-*;do \n";
   print "  [ \"\$f\" != \"/etc/sysconfig/network-scripts/ifcfg-lo\" ] && rm -f \"\$f\"\n";
   print "done \n";
-
-  #firstreboot-scripts
-  print "mkdir -p /etc/rc.firstreboot\n";
-  print "chmod 700 /etc/rc.firstreboot\n";
- 
-  #copy/create  scripts 
-  
-  #function afi_part_firsteboot must create at least one file in 
-  # /etc/rc.firstreboot/[0-9][0-9][0-9]-<a-filename>
-  # and can therefore decide the ordering to other scripts
-  # !!! THE CREATED FILES MUST BE MADE EXECUTABLE !!!
-  afi_part_firstreboot();
   print "\n";
 
-  # functions ${postclassvalue}.firstreboot must create at least one file in 
-  # /etc/rc.firstreboot/[0-9][0-9][0-9]-<a-filename>
-  # and can therefore decide the ordering to other scripts
-  # !!! THE CREATED FILES MUST BE MADE EXECUTABLE !!!
+  print "# Firstreboot\n";
+  print "\n";
+  print "mkdir -p /etc/rc.firstreboot\n";
+  print "chmod 700 /etc/rc.firstreboot\n";
+  print "mkdir -p /var/log/install/firstreboot\n";
+  print "\n";
+ 
+  print "# firstreboot-scripts\n";
+  
+  print "# Trying to load post - firstreboot partition class \n";
+  print "\n";
+  print "#function afi_part_firsteboot must create at least one file in\n";
+  print "# /etc/rc.firstreboot/[0-9][0-9][0-9]-<a-filename>\n";
+  print "# and can therefore decide the ordering to other scripts\n";
+  print "# !!! THE CREATED FILES MUST BE MADE EXECUTABLE !!!\n";
+  print "\n";
+  afi_part_firstreboot();
+  print "# End post - firstreboot partition class \n";
+  print "\n";
+
+  print "# Trying to load postclasses - firstreboot\n";
+  print "\n";
+  print "# functions in *.firstreboot must create at least one file in\n";
+  print "# /etc/rc.firstreboot/[0-9][0-9][0-9]-<a-filename>\n";
+  print "# and can therefore decide the ordering to other scripts\n";
+  print "# !!! THE CREATED FILES MUST BE MADE EXECUTABLE !!!\n";
+  print "\n";
   if (is_array($host_conf['post_classes'])) {
     foreach ($host_conf['post_classes'] as $postclassvalue) {
+      print "# Trying to load ".$postclassvalue.".firstreboot\n";
       afi_require_file_and_override ("post/${postclassvalue}.firstreboot"); 
+      print "# End ".$postclassvalue.".firstreboot \n";
+      print "\n";
     }
   }
+  print "# End postclasses - firstreboot\n";
   print "\n";
 
 ?>
-  mkdir -p /var/log/install/firstreboot
 
-  #firstreboot
-  cat /etc/rc.local >/etc/rc.local.orig
+# Creating firstreboot script
+cat /etc/rc.local >/etc/rc.local.orig
 
-  cat >/etc/rc.local <<-EOF
+cat >/etc/rc.local <<-EOF
 # this prevents rc.local from running twice,
 # /var/lock/subsys/local will be removed on system shutdown/reboot
 touch /var/lock/subsys/local
@@ -277,25 +325,33 @@ sleep 10
 exit 0
 EOF
 
+# End creating firstreboot script
+# End firstreboot
+
 <?php 
+  print "# Trying to load post - chroot partition class \n";
   afi_part_post();
+  print "# End post - chroot partition class \n";
   print "\n";
 
+  print "# Trying to load postclasses - chroot\n";
   if (is_array($host_conf['post_classes'])) {
     foreach ($host_conf['post_classes'] as $postclassvalue) {
+      print "# Trying to load ".$postclassvalue.".chroot\n";
       afi_require_file_and_override ("post/${postclassvalue}.chroot"); 
+      print "# End ".$postclassvalue.".chroot \n";
+      print "\n";
     }
   }
+  print "# End postclasses - chroot\n";
+  print "\n";
 
-  #probably needed for some packages
   if (afi_get_const_array_key('AFI_CLIENT_CONF','dist') == "oracle") {
+    print "# hacky workaround to remove grub entry for kernel (we only want kernel-uek on oracle linux)\n";
     print "for KERNEL in /boot/vmlinuz-2.6.32*; do /sbin/grubby --remove-kernel=\"\$KERNEL\";done\n";
-    #this is not working because a few packages need the kernel package
-    #print "yum -y remove kernel\n";
     print "\n";
   }
 
-  # unset host install
   if (afi_get_const_array_key('AFI_CLIENT_CONF','unset_install_when_successfully_installed') === "1") {
     print "echo \"#unsetting host install to prevent install loop\"\n";
     print afi_get_unset_url_command()."\n";
@@ -341,7 +397,9 @@ main() {
   esac
 
 <?php 
+  print "# Trying to load post - nochroot partition class \n";
   afi_part_post_nochroot();
+  print "# End post - nochroot partition class \n";
   print "\n";
 ?>
 
