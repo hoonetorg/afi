@@ -124,7 +124,8 @@ function afi_disk_settle($afi_install_disk_full) {
 }
 
 #parted
-function afi_make_partitions($afi_install_disk , $afi_part_bootable, $afi_disklabel_type, $afi_install_disk_layout ) {
+#function afi_make_partitions($afi_install_disk , $afi_part_bios_grub, $afi_part_bootable, $afi_disklabel_type, $afi_install_disk_layout ) {
+function afi_make_partitions($afi_install_disk , $afi_disklabel_type, $afi_install_disk_layout ) {
 
   $afi_part_size_unit="B";
   $afi_part_size_factor="1048576";
@@ -155,7 +156,7 @@ function afi_make_partitions($afi_install_disk , $afi_part_bootable, $afi_diskla
   print "echo \"AFI_PART_DISK_SIZE_ALIGNED: \$AFI_PART_DISK_SIZE_ALIGNED\"\n";
   print "\n";
 
-  foreach ($afi_install_disk_layout as $afi_install_disk_partition) {
+  foreach ($afi_install_disk_layout as $afi_install_disk_partition_number => $afi_install_disk_partition) {
 
     $afi_part_type=$afi_install_disk_partition['part_type'];
     print "\n";
@@ -176,7 +177,7 @@ function afi_make_partitions($afi_install_disk , $afi_part_bootable, $afi_diskla
     print "echo \"AFI_PART_END: \$AFI_PART_END\"\n";
     print "\n";
 
-    $afi_parted_string="${afi_parted_string_init} mkpart ${afi_part_type} \"\" \${AFI_PART_START}${afi_part_size_unit} \${AFI_PART_END}${afi_part_size_unit}";
+    $afi_parted_string="${afi_parted_string_init} mkpart \"${afi_part_type}\" \"\" \${AFI_PART_START}${afi_part_size_unit} \${AFI_PART_END}${afi_part_size_unit}";
 
     print "\n";
     print "echo 'Executing: ${afi_parted_string}'\n";
@@ -195,16 +196,17 @@ function afi_make_partitions($afi_install_disk , $afi_part_bootable, $afi_diskla
     print "echo \"AFI_PART_START: \$AFI_PART_START\"\n";
     print "\n";
 
+    if ( array_key_exists('flags',$afi_install_disk_partition)) {
+      foreach ($afi_install_disk_partition['flags']  as $afi_part_flag) {
+        print "\n";
+        print "echo \"Executing: parted -s \\\"${afi_install_disk_full}\\\" unit ${afi_part_size_unit} print set ${afi_install_disk_partition_number} ${afi_part_flag} on print\"\n";
+        print "parted -s \"${afi_install_disk_full}\" unit ${afi_part_size_unit} print set ${afi_install_disk_partition_number} ${afi_part_flag} on print\n";
+        print "\n";
+
+        afi_disk_settle($afi_install_disk_full);
+      }
+    }
   }
-
-  if (preg_match('/^[0-9][0-9]*$/', $afi_part_bootable)) {  
-    print "\n";
-    print "echo \"Executing: parted -s \\\"${afi_install_disk_full}\\\" unit ${afi_part_size_unit} print set ${afi_part_bootable} boot on print\"\n";
-    print "parted -s \"${afi_install_disk_full}\" unit ${afi_part_size_unit} print set ${afi_part_bootable} boot on print\n";
-    print "\n";
-  } 
-
-  afi_disk_settle($afi_install_disk_full);
 }
 
 #md
