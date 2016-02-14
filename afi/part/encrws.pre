@@ -1,0 +1,17 @@
+<?php
+function afi_partition_pre($afi_install_disks) {
+  #partitions
+
+  if (afi_get_const_array_key('AFI_CLIENT_CONF','part_initial') == 1) {
+    $afi_disklabel_type="msdos";
+    $afi_install_disk_layout=array( 
+      1 => array('part_type' => "primary", 'part_size' => "1024",  'flags' => array(0 => 'boot'), ), 
+      2 => array('part_type' => "primary", 'part_size' => "32768", ), 
+      3 => array('part_type' => "primary", 'part_size' => "end", ),
+    );  
+
+    afi_make_partitions($afi_install_disks[0]['disk'], $afi_disklabel_type, $afi_install_disk_layout ) ;
+    print "\n";
+  }
+}
+?>

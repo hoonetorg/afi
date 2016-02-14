@@ -1,0 +1,34 @@
+<?php
+function afi_partition_post($afi_install_disks) {
+  $afi_keypartition = afi_get_const_array_key('AFI_CLIENT_CONF','keypartition');
+  $afi_lukskeyfile = afi_get_const_array_key('AFI_CLIENT_CONF','lukskeyfile');
+  $afi_initial_pw = afi_get_const_array_key('AFI_CLIENT_CONF','initial_pw');
+
+  print "mkdir -p /1\n";
+  print "mount -o ro ".$afi_keypartition." /1\n";
+  print "echo \"".$afi_initial_pw."\" |cryptsetup luksAddKey /dev/".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."2 /1/keyfile\n";
+  print "mkdir -p /etc/crypttab.d\n";
+  print "chmod 700 /etc/crypttab.d\n";
+  print "cp /1/keyfile /etc/crypttab.d\n";
+  print "chmod 400 /etc/crypttab.d/keyfile\n";
+  print "chattr +i /etc/crypttab.d/keyfile\n";
+  print "umount /1\n";
+  print "rmdir -p /1\n";
+
+  print "sed -i -r \"s|^[[:blank:]]*(GRUB_CMDLINE_LINUX.*)([\\\"'])|\\1 rd.luks.key=".$afi_lukskeyfile.":".$afi_keypartition." \\2|g\" /etc/default/grub\n";
+?>
+
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+sed -i -r "s/[[:blank:]]*[#]*(omit_dracutmodules.*[[:blank:]]*[=+]+[[:blank:]]*[\"'])(.*)([\"'])/\1 \2  systemd \3/g" /etc/dracut.conf
+
+for KERNEL in /boot/vmlinuz-[1-9]*; do
+KERNELVER="$(echo `basename \$KERNEL`|sed 's%^vmlinuz-%%g')"
+echo "dracut -f /boot/initramfs-${KERNELVER}.img $KERNELVER"
+dracut -f /boot/initramfs-${KERNELVER}.img $KERNELVER
+done
+
+<?php
+}
+?>
+
