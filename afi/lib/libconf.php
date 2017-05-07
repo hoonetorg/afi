@@ -13,6 +13,7 @@ function afi_get_const_array_key($aficonstarray, $aficonstarraykey) {
 function afi_get_base_url_origin($use_forwarded_host=false) {
   # protocol
   $afi_ssl = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? true:false;
+  $afi_ssl = ( (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') || $afi_ssl) ? true:false;
   $afi_sp = strtolower($_SERVER['SERVER_PROTOCOL']);
   $afi_protocol = substr($afi_sp, 0, strpos($afi_sp, '/')) . (($afi_ssl) ? 's' : '');
   if ( ! preg_match("/\A[a-z]+\z/i",$afi_protocol) ) {
@@ -22,6 +23,7 @@ function afi_get_base_url_origin($use_forwarded_host=false) {
 
   # port
   $afi_port = $_SERVER['SERVER_PORT'];
+  $afi_port = (!empty($_SERVER['HTTP_X_FORWARDED_PORT'])) ? $_SERVER['HTTP_X_FORWARDED_PORT'] : $afi_port;
   if ( ! filter_var($afi_port, FILTER_VALIDATE_INT) ) {
     afi_debug_var("afi_get_base_url_origin: afi_port is not an int", $afi_port ,5);
     return FALSE ;
