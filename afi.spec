@@ -1,5 +1,5 @@
 Name:		afi
-Version:	0.7
+Version:	0.8
 Release:	1%{?dist}
 Summary:	AFI Automatically Fully Install - a wrapper around kickstart
 
