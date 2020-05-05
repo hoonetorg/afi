@@ -26,7 +26,9 @@ function create_package_config_ks () {
 
   if (is_array($afi_package_classes)) {
     foreach ($afi_package_classes as $packageclassvalue) {
+      afi_debug_var("packageclassvalue", $packageclassvalue, 6);
       $afi_package_conf_class = afi_get_package_config_ks($packageclassvalue.".main");
+      afi_debug_var("afi_package_conf_class", $afi_package_conf_class, 6);
       print $afi_package_conf_class['packages']."\n";
       print "\n";
     }

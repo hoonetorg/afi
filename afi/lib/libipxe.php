@@ -4,6 +4,7 @@ function afi_get_kernel_conf_dist() {
   $afi_dist = afi_get_const_array_key('AFI_CLIENT_CONF','dist');
   $afi_distver = afi_get_const_array_key('AFI_CLIENT_CONF','distver');
   $conffile_kernel_dist = "urls/".$afi_dist."/".$afi_distver."/kernel.conf";
+  afi_debug_var("$conffile_kernel_dist",$conffile_kernel_dist,6);
   return afi_get_conffile_and_override($conffile_kernel_dist);
 }
 
