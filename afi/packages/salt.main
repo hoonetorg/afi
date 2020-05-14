@@ -1,4 +1,4 @@
 packages="#package class salt
 salt-minion
-python-augeas
+python3-augeas
 augeas-libs" 
