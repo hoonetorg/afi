@@ -48,7 +48,7 @@ the wanted version tag is referenced as ```<version>```
 ```
 mkdir -p ~/rpmbuild/{SOURCES,SPECS}
 cd ~/rpmbuild/SPECS
-wget https://raw.githubusercontent.com/hoonetorg/afi/<version>/afi.spec
+wget https://gitlab.com/hoocloud/afi/-/raw/<version>/afi.spec
 spectool -g -C ../SOURCES -D afi.spec
 rpmbuild -ba afi.spec
 ```
