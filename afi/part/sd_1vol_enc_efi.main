@@ -1,0 +1,12 @@
+<?php
+function afi_partition_main($afi_install_disks, $afi_install_disks_comma, $afi_install_disks_space) {
+  $afi_initial_pw = afi_get_const_array_key('AFI_CLIENT_CONF','initial_pw');
+
+  print "ignoredisk --only-use=$afi_install_disks_comma\n";
+
+  print "part biosboot  --fstype=biosboot --size=1                                                                               --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."1\n";
+  print "part /boot     --fstype=xfs      --fsoptions=rw,noatime,nodiratime,discard                                              --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."2\n";
+  print "part /boot/efi --fstype=efi                                                                                             --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."3\n";
+  print "part /         --fstype=xfs      --fsoptions=rw,noatime,nodiratime,discard --encrypted --passphrase=".$afi_initial_pw." --onpart=".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."4\n";
+}
+?>

@@ -1,0 +1,21 @@
+<?php
+function afi_partition_pre($afi_install_disks) {
+
+  #partitions
+  if (afi_get_const_array_key('AFI_CLIENT_CONF','part_initial') == 1) {
+    $afi_disklabel_type="gpt";
+ 
+    $afi_disk_layout=array(
+      1 => array('part_type' => "bios_grub", 'part_size' => "1",     'flags' => array(0 => 'bios_grub'), ),
+      2 => array('part_type' => "boot", 'part_size' => "2048", ),
+      3 => array('part_type' => "esp", 'part_size' => "200",  'flags' => array(0 => 'boot' ), ),
+      4 => array('part_type' => "os", 'part_size' => "end", ),
+    );
+
+
+    afi_make_partitions($afi_install_disks[0]['disk'], $afi_disklabel_type, $afi_disk_layout ) ;
+    print "\n";
+
+  }
+
+}
