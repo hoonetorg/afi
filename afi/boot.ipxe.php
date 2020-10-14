@@ -13,11 +13,11 @@ if (afi_get_host_install()) {
   #debug output for iPXE
   print "echo 'Client profile name: \"".$afi_client_profile_name."\"'\n";
 
-  print "echo 'kernel ".$afi_ipxe_kernel_string."'\n";
+  print "echo 'kernel ".$afi_ipxe_kernel_string." initrd=".basename($afi_ipxe_initrd_string)."'\n";
   print "echo 'initrd ".$afi_ipxe_initrd_string."'\n";
 
   #kernel + options and initrd
-  print "kernel ".$afi_ipxe_kernel_string."\n";
+  print "kernel ".$afi_ipxe_kernel_string." initrd=".basename($afi_ipxe_initrd_string)."\n";
   print "initrd ".$afi_ipxe_initrd_string."\n";
 
   #boot kernel
