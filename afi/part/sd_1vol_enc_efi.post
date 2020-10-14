@@ -3,24 +3,40 @@ function afi_partition_post($afi_install_disks) {
   $afi_keypartition = afi_get_const_array_key('AFI_CLIENT_CONF','keypartition');
   $afi_lukskeyfile = afi_get_const_array_key('AFI_CLIENT_CONF','lukskeyfile');
   $afi_initial_pw = afi_get_const_array_key('AFI_CLIENT_CONF','initial_pw');
+  $afi_dist = afi_get_const_array_key('AFI_CLIENT_CONF','dist');
 
+  # get UUID of crypted root device
+  print "CRYPT_ROOT_UUID=\"$(cryptsetup luksUUID /dev/".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."4)\"\n";
+  
+  # mount disk with keys
   print "mkdir -p /1\n";
   print "mount -o ro ".$afi_keypartition." /1\n";
+
+  # add key from keyfile on disk to crypted root device
   print "echo \"".$afi_initial_pw."\" |cryptsetup luksAddKey /dev/".$afi_install_disks[0]['disk'].$afi_install_disks[0]['partprefix']."4 /1/keyfile\n";
+
+  # copy keyfile
   print "mkdir -p /etc/crypttab.d\n";
   print "chmod 700 /etc/crypttab.d\n";
   print "cp /1/keyfile /etc/crypttab.d\n";
   print "chmod 400 /etc/crypttab.d/keyfile\n";
   print "chattr +i /etc/crypttab.d/keyfile\n";
+
+  # umount disk with keys
   print "umount /1\n";
   print "rmdir -p /1\n";
 
-  print "sed -i -r \"s|^[[:blank:]]*(GRUB_CMDLINE_LINUX.*)([\\\"'])|\\1 rd.luks.key=".$afi_lukskeyfile.":".$afi_keypartition." \\2|g\" /etc/default/grub\n";
+  # set Grub options for decrypting root disk from keyfile on disk
+  print "sed -i -r \"s|rd.luks.uuid=luks-|rd.luks.uuid=|g\" /etc/default/grub\n";
+  print "sed -i -r \"s|^[[:blank:]]*(GRUB_CMDLINE_LINUX.*)([\\\"'])|\\1 rd.luks.key=\${CRYPT_ROOT_UUID}=".$afi_lukskeyfile.":".$afi_keypartition." rd.luks.options=\${CRYPT_ROOT_UUID}=keyfile-timeout=30s,discard \\2|g\" /etc/default/grub\n";
+
+  # remove crypt root device from crypttab
+  print "sed -i -r \"/\${CRYPT_ROOT_UUID}/d\" /etc/crypttab\n";
+
+  # create new grub config
+  print "test -d /sys/firmware/efi && grub2-mkconfig -o /boot/efi/EFI/".$afi_dist."/grub.cfg || grub2-mkconfig -o /boot/grub2/grub.cfg\n";
+
 ?>
-
-grub2-mkconfig -o /boot/grub2/grub.cfg
-
-#sed -i -r "s/[[:blank:]]*[#]*(omit_dracutmodules.*[[:blank:]]*[=+]+[[:blank:]]*[\"'])(.*)([\"'])/\1 \2  systemd \3/g" /etc/dracut.conf
 
 for KERNEL in /boot/vmlinuz-[1-9]*; do
 KERNELVER="$(echo `basename \$KERNEL`|sed 's%^vmlinuz-%%g')"
